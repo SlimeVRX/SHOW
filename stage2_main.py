@@ -47,7 +47,7 @@ from loguru import logger
 import face_alignment
 import mmcv
 
-from mmhuman3d.utils.ffmpeg_utils import images_to_video
+from SHOW.utils.video import images_to_video
 from torchvision.transforms.functional import gaussian_blur
 from pytorch3d.transforms import axis_angle_to_matrix
 from pytorch3d.renderer import RasterizationSettings, PointLights, MeshRenderer, MeshRasterizer, TexturesVertex, SoftPhongShader, look_at_view_transform, PerspectiveCameras
@@ -96,16 +96,19 @@ def SHOW_stage2(*args, **kwargs):
     
 
     mmcv.dump(tracker_cfg, tracker_cfg.tracker_cfg_path)
-    gpu_mem = machine_info['gpu_info']['gpu_Total']
-
-    import platform
-    if platform.system() == 'Linux':
-        # 50.0 * 24220 / (65.0*1024)
-        tracker_cfg.bs_at_a_time = int(50.0 * gpu_mem / (80.0 * 1024))
-        logger.warning(f'bs_at_a_time: {tracker_cfg.bs_at_a_time}')
-        if tracker_cfg.bs_at_a_time < 10:
-            return False
     
+    
+    try:
+        gpu_mem = machine_info['gpu_info']['gpu_Total']
+
+        import platform
+        if platform.system() == 'Linux':
+            # 50.0 * 24220 / (65.0*1024)
+            tracker_cfg.bs_at_a_time = int(50.0 * gpu_mem / (80.0 * 1024))
+            logger.warning(f'bs_at_a_time: {tracker_cfg.bs_at_a_time}')
+    except:
+        import traceback
+        traceback.print_exc()
 
     Path(tracker_cfg.mica_save_path).mkdir(exist_ok=True, parents=True)
     Path(tracker_cfg.mica_org_out_path).mkdir(exist_ok=True, parents=True)
@@ -666,13 +669,6 @@ def SHOW_stage2(*args, **kwargs):
                                         save_callback,
                                     )
 
-                                if False:
-                                    for k, v in losses.items():
-                                        print(f'{k}: {v.requires_grad}')
-
-                                    for k, v in losses.items():
-                                        print(f'{k}: {v.grad}')
-
                                 if loggers is not None:
                                     loggers.log_bs(losses)
                                     if torch.isnan(all_loss).sum():
@@ -686,19 +682,9 @@ def SHOW_stage2(*args, **kwargs):
                                             '/mica_opt_nan.info', 'a').close()
                                         break
 
-                                    if False:
-                                        if (p + 1) % 32 == 0:
-                                            clamp_img = torch.clamp(
-                                                ops['images'][0], 0, 1)
-                                            loggers.log_image(
-                                                f"opt_stage_img/{k}_{p}",
-                                                clamp_img)
                                 else:
-                                    if 1:
-                                        print(f'step {k}_{p}: {log_str}')
-                                    else:
-                                        pbar.set_description(log_str)
-                                        pbar.update(1)
+                                    pbar.set_description(log_str)
+                                    pbar.update(1)
 
                                 optimizer.zero_grad()
                                 all_loss.backward()
@@ -837,6 +823,10 @@ def SHOW_stage2(*args, **kwargs):
                         debug_renderer,
                         save_callback,
                     )
+
+    load_data = mmcv.load(tracker_cfg.ours_pkl_file_path)[0]
+    load_data = SHOW.replace_mica_exp(tracker_cfg.mica_all_dir, load_data)
+    mmcv.dump([load_data], tracker_cfg.mica_merge_pkl)
 
     if not Path(tracker_cfg.mica_org_out_video).exists():
         if not SHOW.is_empty_dir(tracker_cfg.mica_org_out_path):

@@ -103,7 +103,7 @@ def get_gpu_info():
         pynvml.nvmlInit()
         gpu_count= pynvml.nvmlDeviceGetCount()
         handle = pynvml.nvmlDeviceGetHandleByIndex(0)
-        gpu_name=pynvml.nvmlDeviceGetName(handle).decode()
+        gpu_name=pynvml.nvmlDeviceGetName(handle)
         gpu_version=pynvml.nvmlSystemGetDriverVersion()
         info = pynvml.nvmlDeviceGetMemoryInfo(handle)
 
@@ -121,14 +121,11 @@ def get_gpu_info():
             gpu_Used=gpu_Used
         )
     except:
-        # import traceback
-        # traceback.print_exc()
-        return None
+        import traceback
+        traceback.print_exc()
+        
 
 def get_machine_info():
-    # import socket
-    # host_name=socket.gethostname() 
-    # host_name=os.uname   
     host_name=platform.node()
     gpu_info = get_gpu_info()
     
