@@ -13,7 +13,7 @@ class FAN_Detector(object):
     def __init__(self,device='cuda'):
         if self.__dict__.get('face_detector',None) is None:
             import face_alignment
-            self.face_detector = face_alignment.FaceAlignment(face_alignment.LandmarksType._2D, device=device)
+            self.face_detector = face_alignment.FaceAlignment(face_alignment.LandmarksType.TWO_D, device=device)
         
     def predict(self,
                 img_folder,fan_npy_folder,
