@@ -151,7 +151,7 @@ def SHOW_stage2(*args, **kwargs):
         person_face_emb = assets.person_face_emb
         face_detector_mediapipe = FaceDetector('google', device=device)
         face_detector = face_alignment.FaceAlignment(
-            face_alignment.LandmarksType._2D, device=device)
+            face_alignment.LandmarksType.TWO_D, device=device)
 
         body_model = load_smplx_model(dtype=dtype, **tracker_cfg.smplx_cfg)
         body_params_dict = load_save_pkl(tracker_cfg.ours_pkl_file_path,
