@@ -32,7 +32,7 @@ class arcface_ider(ider_base):
         if self.det == 'fan':
             import face_alignment
             self.fan = face_alignment.FaceAlignment(
-                face_alignment.LandmarksType._2D, 
+                face_alignment.LandmarksType.TWO_D, 
                 flip_input=False)
         if self.det == 'mtcnn':
             from facenet_pytorch import MTCNN as mtcnn
